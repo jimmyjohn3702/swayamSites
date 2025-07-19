@@ -150,7 +150,7 @@ def app():
         """)
         
         # Usage Statistics
-        if 'generated_content' in st.session_state:
+        if 'generated_content' in st.session_state and st.session_state['generated_content'] is not None:
             st.markdown("#### 📊 Generation Stats")
             total_sections = len(st.session_state['generated_content'])
             st.metric("Sections Generated", total_sections)

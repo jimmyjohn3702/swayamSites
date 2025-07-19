@@ -8,12 +8,14 @@ def app():
     st.markdown("Review your portfolio and export as PDF")
     
     # Check if all required data exists
-    if 'user_data' not in st.session_state:
+    if 'user_data' not in st.session_state or st.session_state['user_data'] is None:
         st.warning("⚠️ Please enter your details first!")
+        st.markdown("👈 Go to 'User Input' to enter your information.")
         return
     
-    if 'generated_content' not in st.session_state:
+    if 'generated_content' not in st.session_state or st.session_state['generated_content'] is None:
         st.warning("⚠️ Please generate content first!")
+        st.markdown("👈 Go to 'AI Generation' to create your content.")
         return
     
     user_data = st.session_state['user_data']

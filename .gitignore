@@ -27,5 +27,8 @@ generated_content.json
 .DS_Store
 Thumbs.db
 
-# Streamlit
+# Streamlit Secrets (NEVER COMMIT!)
 .streamlit/secrets.toml
+
+# Environment Files (NEVER COMMIT!)
+.env

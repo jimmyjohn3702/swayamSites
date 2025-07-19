@@ -9,21 +9,80 @@ class OpenRouterAPI:
     """OpenRouter API integration with multiple API keys and models"""
     
     def __init__(self):
-        # Your provided API keys
-        self.api_keys = [
-            "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",  # Gemini Flash
-            "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",  # DeepSeek
-            "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",  # Claude
-            "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",  # Venice
-            "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"   # Sarvam
-        ]
+        # Load API keys from environment variables or Streamlit secrets
+        self.api_keys = self._load_api_keys()
         
         self.base_url = "https://openrouter.ai/api/v1/chat/completions"
+    
+    def _load_api_keys(self) -> List[str]:
+        """Load API keys from environment variables or Streamlit secrets"""
+        api_keys = []
         
-        # Model configurations
-        self.models = {
+        try:
+            # Try to load from Streamlit secrets first (for Streamlit Cloud/HF Spaces)
+            if hasattr(st, 'secrets'):
+                try:
+                    # API key names to load from secrets/environment
+                    key_names = ['DEEPSEEK_API_KEY', 'GEMINI_API_KEY', 'KIMI_API_KEY', 'QWEN_API_KEY']
+                    
+                    # Try to get from Streamlit secrets
+                    for key_name in key_names:
+                        try:
+                            # First try from secrets
+                            secret_key = st.secrets.get(key_name)
+                            if secret_key:
+                                api_keys.append(secret_key)
+                            else:
+                                # Fallback to environment variable
+                                env_key = os.environ.get(key_name)
+                                if env_key:
+                                    api_keys.append(env_key)
+                        except:
+                            # If secrets access fails, try environment variable
+                            env_key = os.environ.get(key_name)
+                            if env_key:
+                                api_keys.append(env_key)
+                            
+                except Exception as e:
+                    st.warning(f"Could not load from Streamlit secrets: {str(e)}")
+                    # Fallback to environment variables
+                    api_keys = self._load_from_env()
+            else:
+                # Load from environment variables
+                api_keys = self._load_from_env()
+                
+        except Exception as e:
+            st.error(f"Error loading API keys: {str(e)}")
+            # No fallback keys - force proper configuration
+            st.error("🔐 API keys must be configured in environment variables or Streamlit secrets!")
+            api_keys = []
+        
+        # Validate that we have at least one API key
+        if not api_keys or all(not key.strip() for key in api_keys):
+            st.error("⚠️ No valid API keys found! Please configure your API keys in secrets or environment variables.")
+            # Return demo keys to prevent crashes
+            api_keys = ["demo-key-1", "demo-key-2"]
+        
+        return [key for key in api_keys if key and key.strip()]
+    
+    def _load_from_env(self) -> List[str]:
+        """Load API keys from environment variables"""
+        env_keys = [
+            os.environ.get('DEEPSEEK_API_KEY', ''),
+            os.environ.get('GEMINI_API_KEY', ''),
+            os.environ.get('KIMI_API_KEY', ''),
+            os.environ.get('QWEN_API_KEY', '')
+        ]
+        
+        # Filter out empty keys
+        return [key for key in env_keys if key and key.strip()]
+    
+    @property
+    def models(self):
+        """Model configurations"""
+        return {
             "gemini": {
-                "name": "google/gemini-flash-1.5",
+                "name": "google/gemini-2.0-flash-exp",
                 "description": "Fast and efficient for general tasks",
                 "max_tokens": 8192
             },
@@ -32,19 +91,14 @@ class OpenRouterAPI:
                 "description": "Great for coding and technical content",
                 "max_tokens": 4096
             },
-            "claude": {
-                "name": "anthropic/claude-3-haiku",
+            "kimi": {
+                "name": "moonshot/moonshot-v1-8k",
                 "description": "Excellent for creative writing",
-                "max_tokens": 4096
+                "max_tokens": 8192
             },
-            "venice": {
-                "name": "openai/gpt-4o-mini",
+            "qwen": {
+                "name": "qwen/qwen-2.5-72b-instruct",
                 "description": "Versatile model for various tasks",
-                "max_tokens": 4096
-            },
-            "sarvam": {
-                "name": "meta-llama/llama-3.1-8b-instruct",
-                "description": "Great for multilingual content",
                 "max_tokens": 4096
             }
         }
@@ -57,12 +111,12 @@ class OpenRouterAPI:
         """Select the best model based on task type"""
         task_model_mapping = {
             "resume": "gemini",
-            "portfolio": "venice", 
-            "poetry": "claude",
+            "portfolio": "qwen", 
+            "poetry": "kimi",
             "technical": "deepseek",
-            "creative": "claude",
-            "general": "sarvam",
-            "multilingual": "sarvam"
+            "creative": "kimi",
+            "general": "gemini",
+            "multilingual": "qwen"
         }
         
         model_key = task_model_mapping.get(task_type.lower(), "gemini")
