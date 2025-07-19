@@ -2,6 +2,7 @@ import requests
 import json
 import random
 import streamlit as st
+import os
 from typing import Dict, List, Optional
 
 class OpenRouterAPI:
@@ -74,11 +75,16 @@ class OpenRouterAPI:
         model = self.get_model_for_task(task_type)
         api_key = self.get_random_api_key()
         
+        # Detect if running on Hugging Face Spaces
+        is_hf_spaces = os.environ.get('SPACE_ID') is not None
+        referer = "https://huggingface.co/spaces" if is_hf_spaces else "https://swayam-sites.streamlit.app"
+        
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "https://swayam-sites.streamlit.app",
-            "X-Title": "Swayam Sites - AI Portfolio Builder"
+            "HTTP-Referer": referer,
+            "X-Title": "Swayam Sites - AI Portfolio Builder",
+            "User-Agent": "SwayamSites/1.0"
         }
         
         payload = {

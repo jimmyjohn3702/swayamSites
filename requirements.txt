@@ -5,7 +5,5 @@ requests>=2.31.0
 plotly>=5.15.0
 streamlit-lottie>=0.0.5
 streamlit-option-menu>=0.3.6
-streamlit-extras>=0.3.0
 pdfkit>=1.0.0
 googletrans==4.0.0rc1
-streamlit-card>=0.0.5

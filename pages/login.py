@@ -292,10 +292,55 @@ def app():
                             """, unsafe_allow_html=True)
                             
                         else:
-                            # If IP location fails, request browser location
-                            st.warning("📍 Could not detect location automatically. Please grant precise location permission.")
+                            # For Hugging Face Spaces - allow login without precise location
+                            st.warning("📍 Could not detect location automatically.")
+                            st.info("💡 **For Hugging Face Spaces**: Location detection may be limited. You can continue without precise location.")
                             
-                            # Browser geolocation request with native popup
+                            # Provide option to continue without location or try browser location
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                if st.button("✅ Continue Without Location", type="primary", use_container_width=True):
+                                    # Complete login without precise location
+                                    st.session_state['logged_in'] = True
+                                    st.session_state['username'] = username
+                                    
+                                    # Use default location data
+                                    default_location = {
+                                        "city": "Unknown",
+                                        "country": "Unknown", 
+                                        "latitude": 0,
+                                        "longitude": 0,
+                                        "ip_address": "Unknown"
+                                    }
+                                    update_user_location(username, default_location)
+                                    
+                                    # Load user's previous session data if exists
+                                    session_data = load_user_session_data(username)
+                                    if session_data:
+                                        for key, value in session_data.items():
+                                            if key not in ['last_updated', 'username']:
+                                                st.session_state[key] = value
+                                        st.info("📂 Previous session restored!")
+                                    
+                                    st.success("🎉 Login completed successfully!")
+                                    st.balloons()
+                                    
+                                    # Auto-redirect
+                                    st.markdown("### ✅ Redirecting to Dashboard...")
+                                    st.markdown("""
+                                    <script>
+                                    setTimeout(function() {
+                                        window.location.reload();
+                                    }, 2000);
+                                    </script>
+                                    """, unsafe_allow_html=True)
+                            
+                            with col2:
+                                if st.button("📍 Try Browser Location", use_container_width=True):
+                                    st.info("🔄 Attempting browser location detection...")
+                            
+                            # Browser geolocation request with native popup (fallback)
                             st.markdown("""
                             <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; border-radius: 15px; margin: 20px 0;">
                                 <h4 style="color: white; margin: 0 0 10px 0;">🔒 Complete Your Login</h4>

@@ -1,0 +1,4 @@
+# System packages required for the application
+wkhtmltopdf
+libgdal-dev
+gdal-bin
